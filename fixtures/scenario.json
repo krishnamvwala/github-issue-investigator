@@ -1,0 +1,19 @@
+{
+  "repository": "demo/checkout-api",
+  "issues": [
+    { "number": 42, "title": "Login returns 401 after v1.4.0", "body": "Existing sessions fail immediately after deploying v1.4.0. New logins also fail. v1.3.9 worked. First observed at 2026-10-12T10:02:00Z. Error: SESSION_EXPIRED.", "state": "open", "url": "demo://issues/42" },
+    { "number": 38, "title": "Slow product image loading", "body": "Product thumbnails take two seconds to load on mobile.", "state": "open", "url": "demo://issues/38" }
+  ],
+  "comparison": {
+    "base": "v1.3.9", "head": "v1.4.0", "url": "demo://compare/v1.3.9...v1.4.0", "totalCommits": 2,
+    "commits": [
+      { "sha": "a13b9c7", "message": "refactor(auth): inject clock into session validation", "url": "demo://commits/a13b9c7" },
+      { "sha": "b24c8d1", "message": "chore: update release notes", "url": "demo://commits/b24c8d1" }
+    ],
+    "files": [
+      { "filename": "src/auth/session.ts", "status": "modified", "patch": "@@ -12,3 +12,3 @@\n-const now = Math.floor(Date.now() / 1000);\n+const now = clock.now(); // milliseconds\n if (session.expiresAt <= now) throw new Error('SESSION_EXPIRED');" },
+      { "filename": "CHANGELOG.md", "status": "modified", "patch": "@@ -1 +1,2 @@\n+# v1.4.0\n+Refactor session clock." }
+    ],
+    "truncated": false
+  }
+}

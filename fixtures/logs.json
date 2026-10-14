@@ -1,0 +1,6 @@
+[
+  { "timestamp": "2026-10-12T09:58:00Z", "level": "info", "release": "v1.3.9", "message": "login success session.expiresAt=1791802800 now=1791799080" },
+  { "timestamp": "2026-10-12T10:00:00Z", "level": "info", "release": "v1.4.0", "message": "deployment completed" },
+  { "timestamp": "2026-10-12T10:02:00Z", "level": "error", "release": "v1.4.0", "message": "login SESSION_EXPIRED session.expiresAt=1791802800 now=1791799320000" },
+  { "timestamp": "2026-10-12T10:03:00Z", "level": "error", "release": "v1.4.0", "message": "login SESSION_EXPIRED session.expiresAt=1791802860 now=1791799380000" }
+]
