@@ -14,7 +14,13 @@ Protocol code should not know GitHub response shapes or fixture storage details.
 
 ## Evidence completeness
 
-Returning an unbounded repository diff makes clients slow and obscures useful evidence. Responses include truncation indicators, null patches where unavailable, source URLs, and commit totals. The first version does not paginate automatically. A client should request narrower revision ranges when data is incomplete.
+Returning an unbounded repository diff makes clients slow and obscures useful evidence. Responses include truncation indicators, null patches where unavailable, source URLs, and commit totals. Issue search and comparisons do not paginate automatically. Discussion callers can request subsequent pages with the comment tool. A client should request narrower revision ranges when data is incomplete.
+
+## Source excerpts and discussion
+
+The file reader resolves a supplied tag or branch before retrieving content, so the returned evidence and its permalink refer to the same immutable commit. It never follows download URLs. Paths are repository-relative and encoded by segment. UTF-8 decoding is strict, binary data is rejected, and source windows preserve line offsets while limiting context.
+
+Comments use numeric page parameters and read only GitHub's next-page indicator, rather than following arbitrary Link URLs. A response distinguishes the next page from clipping within a comment body. Users must inspect both before treating the discussion as complete.
 
 ## Confidence
 
@@ -22,7 +28,7 @@ The scripted demo reports high confidence only for its synthetic case: issue, di
 
 ## Follow-up roadmap
 
-- Add paginated retrieval and a targeted file reader pinned to a commit SHA.
+- Add pagination for issue search and commit comparisons. Comments already support pages, and source reads resolve refs to commit SHAs.
 - Add evaluation cases with misleading issues, missing logs, and unrelated changes; measure citation correctness and unsupported conclusions.
 - Add a local trace viewer after stabilizing the evidence schema.
 - Support GitHub App authentication and remote transport only when a hosted use case requires them.

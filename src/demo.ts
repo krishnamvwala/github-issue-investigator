@@ -13,6 +13,8 @@ try {
   console.log(`Connected via MCP stdio · ${tools.tools.length} tools available\n`);
   for (const [name, args] of [
     ['search_issues', { query: 'login' }], ['get_issue', { number: 42 }],
+    ['get_issue_comments', { number: 42 }],
+    ['get_file', { path: 'src/auth/session.ts', ref: 'v1.4.0' }],
     ['compare_commits', { base: 'v1.3.9', head: 'v1.4.0' }],
     ['search_logs', { query: 'SESSION_EXPIRED', release: 'v1.4.0' }]
   ] as [string, Record<string, unknown>][]) {

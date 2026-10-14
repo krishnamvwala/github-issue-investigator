@@ -1,0 +1,57 @@
+{
+  "repository": "nodejs/node",
+  "calls": [
+    {
+      "name": "get_issue",
+      "arguments": {
+        "number": 48478
+      }
+    },
+    {
+      "name": "get_issue_comments",
+      "arguments": {
+        "number": 48478
+      }
+    },
+    {
+      "name": "get_file",
+      "arguments": {
+        "path": "deps/undici/src/lib/fetch/request.js",
+        "ref": "43d167a262d0772a73ec1e21316e722bad71e4f8",
+        "startLine": 328,
+        "maxLines": 60
+      }
+    },
+    {
+      "name": "get_file",
+      "arguments": {
+        "path": "deps/undici/src/package.json",
+        "ref": "43d167a262d0772a73ec1e21316e722bad71e4f8",
+        "maxLines": 5
+      }
+    },
+    {
+      "name": "get_file",
+      "arguments": {
+        "path": "deps/undici/src/lib/fetch/request.js",
+        "ref": "a39b8a2a3e8414c8a54650bdfe4a46998282d88a",
+        "startLine": 328,
+        "maxLines": 60
+      }
+    },
+    {
+      "name": "get_file",
+      "arguments": {
+        "path": "deps/undici/src/package.json",
+        "ref": "a39b8a2a3e8414c8a54650bdfe4a46998282d88a",
+        "maxLines": 5
+      }
+    },
+    {
+      "name": "search_logs",
+      "arguments": {
+        "query": "fetch"
+      }
+    }
+  ]
+}

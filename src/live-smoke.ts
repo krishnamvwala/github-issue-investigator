@@ -31,11 +31,13 @@ async function call(name: string, args: Record<string, unknown>): Promise<unknow
 }
 try {
   await client.connect(transport);
-  if ((await client.listTools()).tools.length !== 4) throw new Error('Expected four tools.');
+  if ((await client.listTools()).tools.length !== 6) throw new Error('Expected six tools.');
   const search = z.object({ issues: z.array(z.object({ number: z.number() })), total: z.number() }).parse(await call('search_issues', { query }));
   const first = search.issues[0];
   if (!first) throw new Error('No matching issues. Try another ISSUE_QUERY.');
   const issue = z.object({ number: z.number(), title: z.string(), url: z.string() }).parse(await call('get_issue', { number: first.number }));
+  await call('get_issue_comments', { number: first.number });
+  await call('get_file', { path: process.env.FILE_PATH ?? 'lib/timers.js', ref: head, maxLines: 20 });
   const comparison = z.object({ url: z.string(), totalCommits: z.number(), truncated: z.boolean() }).parse(await call('compare_commits', { base, head }));
   const logs = z.object({ available: z.boolean() }).parse(await call('search_logs', { query }));
   if (logs.available) throw new Error('Smoke check must not load local or synthetic logs.');

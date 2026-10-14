@@ -1,5 +1,6 @@
-import { bounded, type EvidenceSource, type Issue, type Comparison } from './domain.js';
+import { bounded, fileExcerpt, type EvidenceSource, type Issue, type Comparison } from './domain.js';
 import { z } from 'zod';
+import { fileInput, commentsInput } from './inputs.js';
 const issueSchema = z.object({ number: z.number(), title: z.string(), body: z.string().nullable(), state: z.string(), html_url: z.string() });
 const comparisonSchema = z.object({
   html_url: z.string(), total_commits: z.number(),
@@ -15,7 +16,7 @@ export class GitHubSource implements EvidenceSource {
     if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo)) throw new Error('GITHUB_REPO must be owner/repository.');
     this.label = `GitHub: ${repo}`;
   }
-  private async get(path: string): Promise<unknown> {
+  private async get(path: string, onResponse?: (response: Response) => void): Promise<unknown> {
     const headers: Record<string, string> = { Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'github-issue-investigator' };
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
     let response: Response;
@@ -29,6 +30,7 @@ export class GitHubSource implements EvidenceSource {
       if (response.status === 404) throw new Error('GitHub resource not found or inaccessible. Check repository, references, and token permissions.');
       throw new Error(`GitHub returned HTTP ${response.status}.`);
     }
+    onResponse?.(response);
     return response.json();
   }
   async searchIssues(query: string) {
@@ -41,6 +43,50 @@ export class GitHubSource implements EvidenceSource {
   }
   async getIssue(number: number) {
     return normalizeIssue(issueSchema.parse(await this.get(`/repos/${this.repo}/issues/${number}`)));
+  }
+  async getIssueComments(number: number, page = 1) {
+    ({ number, page } = commentsInput.parse({ number, page }));
+    let hasMore = false;
+    const data = z.array(z.object({
+      id: z.number(), user: z.object({ login: z.string() }).nullable(), body: z.string().nullable(),
+      html_url: z.string(), created_at: z.string(), updated_at: z.string()
+    })).max(20).parse(await this.get(`/repos/${this.repo}/issues/${number}/comments?per_page=20&page=${page}`, response => {
+      hasMore = /rel="next"/.test(response.headers.get('link') ?? '');
+    }));
+    const comments = data.map(c => {
+      const body = bounded(c.body ?? '', 6000);
+      return { id: c.id, author: c.user?.login ?? '[deleted]', body, url: c.html_url,
+        createdAt: c.created_at, updatedAt: c.updated_at, truncated: body.endsWith('\n[truncated]') };
+    });
+    return { comments, page, nextPage: hasMore ? page + 1 : null, truncated: hasMore || comments.some(c => c.truncated) };
+  }
+  async getFile(path: string, ref: string, startLine = 1, maxLines = 200) {
+    ({ path, ref, startLine, maxLines } = fileInput.parse({ path, ref, startLine, maxLines }));
+    // Resolve mutable refs once, then use the immutable revision for retrieval and citations.
+    const { sha: commitSha } = z.object({ sha: z.string().regex(/^[a-f0-9]{40}$/) })
+      .parse(await this.get(`/repos/${this.repo}/commits/${encodeURIComponent(ref)}`));
+    const encodedPath = path.split('/').map(encodeURIComponent).join('/');
+    const raw = await this.get(`/repos/${this.repo}/contents/${encodedPath}?ref=${commitSha}`);
+    if (Array.isArray(raw)) throw new Error('Path is a directory; request a text file.');
+    const file = z.object({
+      type: z.string(), encoding: z.string().optional(), size: z.number().nonnegative(),
+      sha: z.string(), content: z.string().optional(), submodule_git_url: z.string().nullable().optional()
+    }).parse(raw);
+    if (file.type !== 'file' || file.submodule_git_url) throw new Error('Only regular repository text files are supported.');
+    if (file.size > 1_000_000) throw new Error('File exceeds the 1 MB limit.');
+    if (file.encoding !== 'base64' || file.content === undefined) throw new Error('GitHub did not return base64 file content.');
+    const encoded = file.content.replace(/\s/g, '');
+    if (encoded.length > 1_333_336 || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(encoded))
+      throw new Error('Invalid or oversized base64 file content.');
+    const bytes = Buffer.from(encoded, 'base64');
+    if (bytes.length > 1_000_000) throw new Error('File exceeds the 1 MB limit.');
+    let text: string;
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(bytes); }
+    catch { throw new Error('File is not UTF-8 text.'); }
+    if (text.includes('\0')) throw new Error('Binary files are not supported.');
+    return { path, requestedRef: ref, commitSha, blobSha: file.sha,
+      url: `https://github.com/${this.repo}/blob/${commitSha}/${encodedPath}#L${startLine}`,
+      ...fileExcerpt(text, startLine, maxLines) };
   }
   async compareCommits(base: string, head: string): Promise<Comparison> {
     const data = comparisonSchema.parse(await this.get(`/repos/${this.repo}/compare/${encodeURIComponent(base)}...${encodeURIComponent(head)}?per_page=100`));

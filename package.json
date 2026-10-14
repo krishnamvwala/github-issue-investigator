@@ -14,7 +14,8 @@
     "demo": "npm run build && node dist/demo.js",
     "test": "node --import tsx --test test/*.test.ts",
     "check": "tsc --noEmit",
-    "smoke:live": "npm run build && node dist/live-smoke.js"
+    "smoke:live": "npm run build && node dist/live-smoke.js",
+    "case:collect": "npm run build && node dist/collect-evidence.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
