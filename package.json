@@ -15,7 +15,9 @@
     "test": "node --import tsx --test test/*.test.ts",
     "check": "tsc --noEmit",
     "smoke:live": "npm run build && node dist/live-smoke.js",
-    "case:collect": "npm run build && node dist/collect-evidence.js"
+    "case:collect": "npm run build && node dist/collect-evidence.js",
+    "dashboard:build": "node dashboard/scripts/build.mjs",
+    "dashboard": "npm run dashboard:build && node dashboard/scripts/serve.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",

@@ -13,6 +13,7 @@ jobs:
       - run: npm run check
       - run: npm test
       - run: npm run demo
+      - run: npm run dashboard:build
       - uses: actions/upload-artifact@v4
         with:
           name: investigation-demo

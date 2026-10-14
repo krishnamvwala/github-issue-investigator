@@ -20,6 +20,20 @@ The demo starts a real MCP server as a child process, discovers its tools, and c
 
 The demo's orchestration and report are scripted against synthetic fixtures. Live reasoning is performed by your connected AI client; this project does not bundle a model or require an OpenAI API key. Demo links use `demo://` and identify fixture records rather than real GitHub pages.
 
+## Explore the investigation dashboard
+
+```bash
+npm run dashboard
+```
+
+Open `http://127.0.0.1:4173` to replay the historical Node.js investigation or synthetic login regression. Inspect tool arguments, timings, readable evidence, raw responses, source citations, findings, and missing evidence. Replay controls and trace downloads work entirely in the browser; no API key is needed.
+
+[Two-minute walkthrough guide](docs/walkthrough.md) · [Dashboard documentation](dashboard/README.md) · [Hosted preview — owner-only](https://github-investigator-replay.mvwalakrishna.chatgpt.site)
+
+![Investigation replay dashboard](docs/screenshots/dashboard-desktop.jpg)
+
+This is a replay of recorded MCP responses with curated findings. It makes no live GitHub or AI requests. Build portable static files with `npm run dashboard:build`; output is `dashboard/dist/`.
+
 ## Connect an AI client
 
 Build first with `npm run build`. Add the following to a client that supports `mcpServers` configuration, replacing the path with your absolute checkout path. Other clients may use a different configuration format.
