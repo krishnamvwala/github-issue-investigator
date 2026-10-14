@@ -42,6 +42,44 @@ Ask the client:
 
 The server also exposes the `investigate-regression` prompt with `symptom`, `base`, and `head` arguments.
 
+### Connect Codex directly
+
+Codex supports local stdio MCP servers. From this checkout, after building:
+
+```bash
+codex mcp add github-investigator \
+  --env INVESTIGATOR_MODE=github \
+  --env GITHUB_REPO=nodejs/node \
+  -- node "$PWD/dist/server.js"
+codex mcp get github-investigator
+```
+
+Use an absolute Node executable path if your desktop app cannot find `node` on its PATH. The command saves the server in your local Codex configuration; it does not commit your machine-specific path to this repository. Open a new Codex chat after adding the server so it can discover the tools. If they do not appear, restart the app.
+
+A first live prompt:
+
+> Use github-investigator to search nodejs/node issues for crash. Read one relevant issue and cite its URL. Tell me what additional version information, logs, or reproducer you need before diagnosing it. Do not infer that an arbitrary release comparison caused the issue.
+
+For the controlled login regression, register a separate demo server with `--env INVESTIGATOR_MODE=demo` and use the demo prompt above. The live repository has no synthetic login incident or bundled logs.
+
+See [official Codex MCP configuration](https://developers.openai.com/codex/mcp).
+
+### Verify live connectivity
+
+```bash
+npm run smoke:live
+```
+
+This calls all four tools through a real stdio MCP connection against `nodejs/node`, without a token. It reads an issue found by the search and compares `v22.0.0` with `v22.1.0`, then confirms that logs are unavailable. These are independent connectivity checks, not a causal diagnosis. It writes `artifacts/live-trace.json` and `artifacts/live-verification.md`.
+
+Override inputs when needed:
+
+```bash
+GITHUB_REPO=owner/repository BASE_REF=v1.0.0 HEAD_REF=v1.0.1 ISSUE_QUERY=crash npm run smoke:live
+```
+
+The smoke check makes public network requests and is intentionally separate from offline CI. GitHub rate limits or unavailable references will fail it explicitly.
+
 ### Investigate a real repository
 
 Change the server environment in your client configuration:

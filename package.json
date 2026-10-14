@@ -13,7 +13,8 @@
     "dev": "node --import tsx src/server.ts",
     "demo": "npm run build && node dist/demo.js",
     "test": "node --import tsx --test test/*.test.ts",
-    "check": "tsc --noEmit"
+    "check": "tsc --noEmit",
+    "smoke:live": "npm run build && node dist/live-smoke.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
